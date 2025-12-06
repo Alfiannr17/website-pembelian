@@ -7,16 +7,23 @@ use Illuminate\Database\Eloquent\Model;
 class Transaction extends Model
 {
     protected $fillable = [
-        'invoice_number', 
-        'user_id', 
-        'game_id', 
-        'item_id',
-        'game_user_id', 
-        'email', 
-        'amount', 
-        'payment_method',
-        'status', 
-        'midtrans_order_id', 'midtrans_response', 'paid_at'
+        'invoice_number',
+    'user_id',
+    'game_id',
+    'item_id',
+    'esim_package_code', // TAMBAH
+    'game_user_id',
+    'email',
+    'amount',
+    'payment_method',
+    'status',
+    'order_status', // TAMBAH
+    'midtrans_order_id',
+    'midtrans_response',
+    'esim_data', // TAMBAH
+    'esim_iccid', // TAMBAH
+    'esim_transaction_no', // TAMBAH
+    'paid_at',
     ];
 
     protected $casts = [
@@ -39,4 +46,9 @@ class Transaction extends Model
     {
         return $this->belongsTo(Item::class);
     }
+
+    public function isEsimTransaction()
+{
+    return !is_null($this->esim_package_code);
+}
 }

@@ -15,12 +15,13 @@ export default function Show({ auth, game }) {
     });
 
     const paymentMethods = [
-        { id: 'qris', name: 'QRIS (All E-Wallet)', logo: '💳' },
-        { id: 'bca_va', name: 'BCA Virtual Account', logo: '🏦' },
-        { id: 'bni_va', name: 'BNI Virtual Account', logo: '🏦' },
-        { id: 'bri_va', name: 'BRI Virtual Account', logo: '🏦' },
-        { id: 'alfamart', name: 'Alfamart', logo: '🏪' },
-        { id: 'indomaret', name: 'Indomaret', logo: '🏪' },
+        { 
+        id: 'qris', name: 'QRIS (All E-Wallet)', src: '/storage/images/qris.jpg'},
+        { id: 'bca_va', name: 'BCA Virtual Account', src: '/storage/images/bca.jpg' },
+        { id: 'bni_va', name: 'BNI Virtual Account', src: '/storage/images/bni.jpg' },
+        { id: 'bri_va', name: 'BRI Virtual Account', src: '/storage/images/bri.jpg' },
+        { id: 'alfamart', name: 'Alfamart',src: '/storage/images/alfa.jpg' },
+        { id: 'indomaret', name: 'Indomaret',src: '/storage/images/indo.jpg' },
     ];
 
     const handleItemSelect = (item) => {
@@ -54,7 +55,7 @@ export default function Show({ auth, game }) {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
              
                     <div className="lg:col-span-1">
-                        <div className="bg-white rounded-2xl border border-gray-200  shadow p-6 sticky top-6">
+                        <div className="bg-white rounded-2xl border border-gray-300  shadow p-6 sticky top-6">
                             {game.image && (
                                 <img 
                                     src={`/storage/${game.image}`} 
@@ -82,7 +83,7 @@ export default function Show({ auth, game }) {
                     <div className="lg:col-span-2">
                         <form onSubmit={handleSubmit} className="space-y-6">
         
-                            <div className="bg-white rounded-2xl border border-gray-200 shadow overflow-hidden">
+                            <div className="bg-white rounded-2xl border border-gray-300 shadow overflow-hidden">
                                 <div className="bg-gradient-to-r from-pink-500 to-pink-600 text-white px-6 py-4">
                                     <h2 className="text-lg font-bold flex items-center">
                                         <span className="bg-white text-pink-600 rounded-full w-8 h-8 flex items-center justify-center mr-3 font-bold">1</span>
@@ -131,7 +132,7 @@ export default function Show({ auth, game }) {
                             </div>
 
                    
-                            <div className="bg-white rounded-2xl border border-gray-200 shadow overflow-hidden">
+                            <div className="bg-white rounded-2xl border border-gray-300 shadow overflow-hidden">
                                 <div className="bg-gradient-to-r from-pink-500 to-pink-600 text-white px-6 py-4">
                                     <h2 className="text-lg font-bold flex items-center">
                                         <span className="bg-white text-pink-600 rounded-full w-8 h-8 flex items-center justify-center mr-3 font-bold">2</span>
@@ -170,7 +171,7 @@ export default function Show({ auth, game }) {
                             </div>
 
                  
-                            <div className="bg-white rounded-2xl border border-gray-200 shadow overflow-hidden">
+                            <div className="bg-white rounded-2xl border border-gray-300 shadow overflow-hidden">
                                 <div className="bg-gradient-to-r from-pink-500 to-pink-600 text-white px-6 py-4">
                                     <h2 className="text-lg font-bold flex items-center">
                                         <span className="bg-white text-pink-600 rounded-full w-8 h-8 flex items-center justify-center mr-3 font-bold">3</span>
@@ -178,30 +179,44 @@ export default function Show({ auth, game }) {
                                     </h2>
                                 </div>
                                 <div className="p-6">
-                                    <div className="space-y-3">
-                                        {paymentMethods.map(method => (
-                                            <button
-                                                key={method.id}
-                                                type="button"
-                                                onClick={() => handlePaymentSelect(method.id)}
-                                                className={`w-full border-2 rounded-2xl p-4 flex items-center transition ${
-                                                    selectedPayment === method.id
-                                                        ? 'border-pink-500 bg-pink-200'
-                                                        : 'border-gray-200 hover:border-pink-300 hover:bg-pink-100'
-                                                }`}
-                                            >
-                                                <span className="text-2xl mr-4">{method.logo}</span>
-                                                <span className="font-medium text-gray-900">{method.name}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                    {errors.payment_method && <p className="text-red-600 text-sm mt-2">{errors.payment_method}</p>}
-                                </div>
+    <div className="space-y-3">
+        {paymentMethods.map(method => (
+            <button
+                key={method.id}
+                type="button"
+                onClick={() => handlePaymentSelect(method.id)}
+                className={`w-full border rounded-2xl p-4 flex items-center transition ${
+                    selectedPayment === method.id
+                        ? 'border-pink-500 bg-pink-50 ring-1 ring-pink-500' 
+                        : 'border-gray-200 hover:border-pink-500 hover:bg-pink-50'
+                }`}
+            >
+  
+                <div className="w-12 h-8 mr-4 flex items-center justify-center shrink-0">
+                    {method.src ? (
+                        <img 
+                            src={method.src} 
+                            alt={method.name} 
+                            className="h-full w-auto object-contain" 
+                        />
+                    ) : (
+                        <span className="text-2xl">{method.logo}</span>
+                    )}
+                </div>
+
+                <span className={`font-medium text-left ${selectedPayment === method.id ? 'text-pink-700' : 'text-gray-900'}`}>
+                    {method.name}
+                </span>
+            </button>
+        ))}
+    </div>
+    {errors.payment_method && <p className="text-red-600 text-sm mt-2">{errors.payment_method}</p>}
+</div>
                             </div>
 
                       
                             {selectedItem && (
-                                <div className="bg-white rounded-2xl border border-gray-200  shadow p-6">
+                                <div className="bg-white rounded-2xl border border-gray-300  shadow p-6">
                                     <div className="flex justify-between items-center mb-4">
                                         <span className="text-gray-600">Total Pembayaran:</span>
                                         <span className="text-2xl font-bold text-pink-600">

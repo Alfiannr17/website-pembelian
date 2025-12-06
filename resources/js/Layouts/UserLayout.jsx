@@ -5,7 +5,7 @@ export default function UserLayout({ children, auth }) {
     return (
         <div className="min-h-screen bg-gray-100">
             {/* Navbar */}
-            <nav className=" bg-white/70 backdrop-blur-md  sticky top-0 z-50 border-b border-gray-200">
+            <nav className=" bg-white/70 backdrop-blur-md shadow-md sticky top-0 z-50 border-b border-gray-200">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
                         <div className="flex items-center">
@@ -28,12 +28,17 @@ export default function UserLayout({ children, auth }) {
                                 </>
                             ) : (
                                 <>
+
+                                <Link href="/essim" className="text-gray-700 hover:text-pink-500">
+                                        eSIM
+                                    </Link>
                                 
-                                    <Link href="/cek-transaksi" className="text-gray-700 hover:text-gray-900">
+                                    <Link href="/cek-transaksi" className="text-gray-700 hover:text-pink-500">
                                         Cek Transaksi
                                     </Link>
-                                    
 
+                                    
+                                    
                                 </>
                             )}
                         </div>

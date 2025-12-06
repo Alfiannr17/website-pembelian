@@ -8,7 +8,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OrderController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\IsAdmin;
-use App\Http\Controllers\EsimController;
+use App\Http\Controllers\EssimController;
 use App\Http\Controllers\MidtransWebhookController;
 
 Route::post('midtrans/webhook', [MidtransWebhookController::class, 'handle']);
@@ -46,4 +46,29 @@ Route::get('/test-csrf', function() {
 
 Route::get('/cek-transaksi', [OrderController::class, 'checkTransaction'])->name('transaction.check');
 Route::post('/cek-transaksi', [OrderController::class, 'processCheckTransaction'])->name('transaction.process');
+
+
+// eSIM Routes
+Route::prefix('essim')->name('essim.')->group(function () {
+    // Public routes
+    Route::get('/', [EssimController::class, 'index'])->name('index');
+    Route::get('/packages/{packageCode}', [EssimController::class, 'showPackage'])->name('showPackage');
+    Route::post('/order', [EssimController::class, 'processOrder'])->name('processOrder');
+    Route::get('/invoice/{invoice_number}', [EssimController::class, 'invoice'])->name('invoice');
+    
+    // Check transaction
+    Route::get('/check', function () {
+        return inertia('Essim/Check');
+    })->name('check');
+    Route::post('/check', [EssimController::class, 'checkTransaction'])->name('check.process');
+    
+    // Protected routes (require auth)
+    Route::middleware('auth')->group(function () {
+        Route::get('/my-esims', [EssimController::class, 'myEsims'])->name('my-esims');
+        Route::get('/details/{id}', [EssimController::class, 'esimDetails'])->name('details');
+    });
+});
+
+
+
 
