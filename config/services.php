@@ -44,9 +44,9 @@ return [
 ],
 
    'esim_access' => [
-        'api_key' => env('ESIM_ACCESS_API_KEY', 'aa4ddeb826234424b94233d28b522cf1'),
-        'access_code' => env('ESIM_ACCESS_ACCESS_CODE', 'aa4ddeb826234424b94233d28b522cf1'),
-        'base_url' => env('ESIM_ACCESS_BASE_URL', 'https://api.esimaccess.com/api/v1/open'),
+        'api_key' => env('ESIM_ACCESS_API_KEY'),
+        'access_code' => env('ESIM_ACCESS_ACCESS_CODE'),
+        'base_url' => env('ESIM_ACCESS_BASE_URL'),
     ],
 
     
