@@ -12,7 +12,11 @@ class Game extends Model
         'description', 
         'image', 
         'category', 
-        'is_active'
+        'is_active',
+
+        'api_brand', 
+        'provider', 
+        'is_zone_id_required'
     ];
 
     protected $casts = [

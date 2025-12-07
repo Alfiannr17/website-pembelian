@@ -27,26 +27,23 @@ class EssimController extends Controller
      */
     public function index()
     {
-        // Ambil data dari Service/API
         $result = $this->esimService->getPackages('ID');
 
         if (!$result['success']) {
             return Inertia::render('Essim/Index', ['packages' => []]);
         }
 
-        // --- EDIT DISINI: KONVERSI KE RUPIAH ---
         $packages = collect($result['packages'])->map(function ($pkg) {
-            // Ambil harga USD (dari API biasanya dikali 10000, jadi kita bagi dulu)
+
             $priceUsd = ($pkg['price'] ?? 0) / 10000; 
             
-            // Konversi ke Rupiah (Misal kurs 16.000)
             $pkg['price_idr'] = ceil($priceUsd * 16000); 
             
             return $pkg;
         });
 
         return Inertia::render('Essim/Index', [
-            'packages' => $packages // Kirim data yang sudah ada price_idr
+            'packages' => $packages 
         ]);
     }
 
@@ -64,7 +61,6 @@ class EssimController extends Controller
             abort(404, "Package tidak ditemukan");
         }
 
-        // --- EDIT DISINI: KONVERSI KE RUPIAH JUGA ---
         $priceUsd = ($package['price'] ?? 0) / 10000;
         $package['price_idr'] = ceil($priceUsd * 16000);
 
@@ -76,11 +72,10 @@ class EssimController extends Controller
     /**
      * Process eSIM order
      */
-  // App/Http/Controllers/EssimController.php
+
 
 public function processOrder(Request $request)
     {
-        // 1. Validasi Input
         $validated = $request->validate([
             'package_code'   => 'required|string',
             'email'          => 'required|email',
@@ -90,23 +85,17 @@ public function processOrder(Request $request)
 
         $exchangeRate = 16000; 
 
-        // 2. CEK DI DATABASE LOKAL DULU
         $localPackage = EsimPackage::where('package_code', $validated['package_code'])->first();
         
-        // --- LOGIKA BARU: AUTO-SAVE DARI API JIKA DB KOSONG ---
         if (!$localPackage) {
-            // Log untuk debugging
             \Log::info("Paket {$validated['package_code']} tidak ada di DB. Mencari ke API...");
 
-            // Ambil semua paket dari API
             $apiResult = $this->esimService->getPackages('ID'); 
 
             if ($apiResult['success']) {
-                // Cari paket spesifik dari list API
                 $apiPackage = collect($apiResult['packages'])->firstWhere('packageCode', $validated['package_code']);
 
                 if ($apiPackage) {
-                    // KETEMU DI API! SEKARANG SIMPAN KE DATABASE
                     $localPackage = EsimPackage::create([
                         'package_code'  => $apiPackage['packageCode'],
                         'slug'          => Str::slug($apiPackage['name']),
@@ -114,7 +103,7 @@ public function processOrder(Request $request)
                         'location_name' => $apiPackage['locationName'] ?? 'Indonesia',
                         'name'          => $apiPackage['name'],
                         'description'   => $apiPackage['description'] ?? null,
-                        'price'         => ($apiPackage['price'] ?? 0) / 10000, 
+                        'price'         => ($apiPackage['price'] ?? 0) /10000, 
                         'data_volume'   => $apiPackage['volume'] ?? 0,
                         'duration'      => $apiPackage['duration'] ?? 0,
                         'duration_unit' => $apiPackage['durationUnit'] ?? 'DAY',
@@ -126,14 +115,11 @@ public function processOrder(Request $request)
                 }
             }
         }
-        // -------------------------------------------------------------
 
-        // Jika setelah dicari ke API tetap tidak ada (memang kode ngawur), baru error
         if (!$localPackage) {
             return back()->withErrors(['package' => 'Paket tidak ditemukan di Database maupun API.']);
         }
 
-        // 3. Lanjut Proses Order Seperti Biasa
         $amountIDR = ceil($localPackage->price * $exchangeRate); 
 
         $invoiceNumber = 'ESIM-' . strtoupper(Str::random(10));
@@ -156,6 +142,7 @@ public function processOrder(Request $request)
 
         return to_route('essim.invoice', ['invoice_number' => $order->invoice_number]);
     }
+
     /**
      * Show invoice
      */
@@ -197,12 +184,10 @@ public function processOrder(Request $request)
         $order = EsimOrder::with(['package', 'profiles'])
             ->findOrFail($id);
 
-        // Check if user has access
         if ($order->user_id && $order->user_id !== auth()->id()) {
             abort(403, 'Unauthorized access');
         }
 
-        // Refresh usage data if profiles exist
         if ($order->profiles->count() > 0) {
             $this->refreshUsageData($order);
         }
@@ -227,47 +212,33 @@ public function processOrder(Request $request)
         $search = $validated['invoice_number'];
         $usageData = [];
         $orderInfo = null;
-
-        // -----------------------------------------------------------
-        // LANGKAH 1: CARI DI DATABASE (INVOICE ATAU ESIM TRAN NO)
-        // -----------------------------------------------------------
-        
-        // A. Coba cari berdasarkan Invoice Number
         $order = EsimOrder::with(['package', 'profiles'])
             ->where('invoice_number', $search)
             ->first();
 
-        // B. Jika tidak ketemu, Coba cari berdasarkan eSIM Transaction No di tabel profiles
         if (!$order) {
             $profile = EsimProfile::with('order.package')
                 ->where('esim_tran_no', $search)
                 ->first();
             
             if ($profile) {
-                // Jika ketemu profilnya, ambil parent order-nya
                 $order = $profile->order;
-                // Load relasi yang dibutuhkan
+
                 if ($order) $order->load(['package', 'profiles']);
             }
         }
 
-        // -----------------------------------------------------------
-        // LANGKAH 2: PROSES DATA JIKA KETEMU DI DATABASE
-        // -----------------------------------------------------------
         if ($order) {
             $orderInfo = $order;
             
-            // Fix: Jika status Paid tapi belum ada profile, coba fetch (Sync)
             if ($order->payment_status === 'paid' && $order->profiles->count() === 0) {
                 $this->fetchEsimProfiles($order);
                 $order->refresh();
             }
 
-            // Ambil nomor eSIM untuk cek kuota ke API
             $tranNos = $order->profiles->pluck('esim_tran_no')->filter()->toArray();
             
             if (!empty($tranNos)) {
-                // Tembak API Check Usage
                 $apiResult = $this->esimService->checkUsage($tranNos);
                 
                 if ($apiResult['success']) {
@@ -275,11 +246,8 @@ public function processOrder(Request $request)
                 }
             }
         } 
-        // -----------------------------------------------------------
-        // LANGKAH 3: JIKA TIDAK ADA DI DB, CEK LANGSUNG API (GUEST MODE)
-        // -----------------------------------------------------------
+
         else {
-            // Asumsi input adalah esim_tran_no yang belum tersync ke DB lokal
             $apiResult = $this->esimService->checkUsage([$search]);
             
             if ($apiResult['success'] && !empty($apiResult['usageList'])) {
@@ -296,6 +264,7 @@ public function processOrder(Request $request)
             ]
         ]);
     }
+
     /**
      * Sync packages from API
      */
@@ -317,7 +286,7 @@ public function processOrder(Request $request)
                     'location_name' => $pkg['locationName'] ?? 'Indonesia',
                     'name' => $pkg['name'],
                     'description' => $pkg['description'] ?? null,
-                    'price' => ($pkg['price'] ?? 0) / 10000, // Convert from API format
+                    'price' => ($pkg['price'] ?? 0)  /10000, 
                     'data_volume' => $pkg['volume'] ?? 0,
                     'duration' => $pkg['duration'] ?? 0,
                     'duration_unit' => $pkg['durationUnit'] ?? 'DAY',
@@ -339,7 +308,6 @@ public function processOrder(Request $request)
      */
     private function processMidtransPayment($order)
     {
-        // 1. Setup Config
         Config::$serverKey = config('services.midtrans.server_key');
         Config::$isProduction = config('services.midtrans.is_production');
         Config::$isSanitized = true;
@@ -350,15 +318,13 @@ public function processOrder(Request $request)
             return;
         }
 
-        // 2. Siapkan Item Name (Max 50 chars)
         $itemName = substr($order->package->name, 0, 49);
 
-        // 3. Susun Parameter Midtrans
         $params = [
             'payment_type' => $this->getPaymentType($order->payment_method),
             'transaction_details' => [
                 'order_id' => $order->invoice_number,
-                'gross_amount' => (int) $order->amount, // Pastikan integer
+                'gross_amount' => (int) $order->amount, 
             ],
             'customer_details' => [
                 'email' => $order->email,
@@ -376,20 +342,14 @@ public function processOrder(Request $request)
         $params = array_merge($params, $this->getPaymentSpecificParams($order->payment_method));
 
         try {
-        // 4. Request ke Midtrans
         $response = CoreApi::charge($params);
-        
-        // 5. Simpan Response
-        // PERBAIKAN: Hapus json_encode(), karena Model sudah punya $casts 'array'
-        // Kita ubah response object jadi array agar aman
+
         $order->update([
             'midtrans_response' => (array) $response, 
         ]);
             
         } catch (\Exception $e) {
             \Log::error('Midtrans Charge Error: ' . $e->getMessage());
-            // Jangan ubah status jadi failed dulu agar user bisa coba lagi
-            // atau biarkan pending.
         }
     }
 
@@ -427,7 +387,6 @@ public function processOrder(Request $request)
     public function fetchEsimProfiles($order)
     {
         if (!$order->api_order_no) {
-            // Create order in eSIM API first
             $result = $this->esimService->orderEsim(
                 $order->transaction_id,
                 $order->package->package_code,
@@ -446,7 +405,6 @@ public function processOrder(Request $request)
             ]);
         }
 
-        // Query profiles
         $result = $this->esimService->queryByOrderNo($order->api_order_no);
 
         if (!$result['success']) {
@@ -454,7 +412,6 @@ public function processOrder(Request $request)
             return false;
         }
 
-        // Save profiles
         foreach ($result['profiles'] as $profile) {
             EsimProfile::updateOrCreate(
                 ['esim_tran_no' => $profile['esimTranNo']],

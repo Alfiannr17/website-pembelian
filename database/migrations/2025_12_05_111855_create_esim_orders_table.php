@@ -15,21 +15,17 @@ class CreateEsimOrdersTable extends Migration
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignId('esim_package_id')->constrained()->onDelete('cascade');
 
-            // Customer Info
             $table->string('email');
             $table->string('phone')->nullable();
 
-            // Order Details
             $table->decimal('amount', 10, 2);
             $table->string('payment_method')->nullable();
             $table->enum('payment_status', ['pending', 'paid', 'failed', 'expired'])->default('pending');
             $table->enum('order_status', ['pending', 'processing', 'completed', 'failed'])->default('pending');
 
-            // API Response
             $table->string('api_order_no')->nullable();
             $table->json('api_response')->nullable();
 
-            // Midtrans
             $table->string('midtrans_order_id')->nullable();
             $table->json('midtrans_response')->nullable();
             $table->timestamp('paid_at')->nullable();

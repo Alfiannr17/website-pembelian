@@ -1,4 +1,3 @@
-// resources/js/Pages/Esim/Check.jsx
 import UserLayout from '@/Layouts/UserLayout';
 import { Head, useForm, Link } from '@inertiajs/react';
 import { Search, Wifi, Database, Calendar, AlertCircle, CheckCircle2 } from 'lucide-react';
@@ -13,7 +12,6 @@ export default function Check({ auth, result }) {
         post('/essim/check');
     };
 
-    // Helper: Format Bytes ke GB/MB
     const formatBytes = (bytes) => {
         if (bytes === 0) return '0 B';
         const k = 1024;
@@ -28,8 +26,7 @@ export default function Check({ auth, result }) {
 
             <div className="min-h-screen bg-gray-50 flex flex-col items-center py-12 px-4">
                 <div className="max-w-2xl w-full">
-                    
-                    {/* Header */}
+
                     <div className="text-center mb-8">
                         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 mb-4">
                             <Search className="w-8 h-8 text-blue-600" />
@@ -42,7 +39,6 @@ export default function Check({ auth, result }) {
                         </p>
                     </div>
 
-                    {/* Form Pencarian */}
                     <div className="bg-white rounded-2xl shadow-sm p-8 border border-gray-200 mb-8">
                         <form onSubmit={submit} className="space-y-4">
                             <div>
@@ -78,7 +74,6 @@ export default function Check({ auth, result }) {
                         </form>
                     </div>
 
-                    {/* HASIL PENCARIAN */}
                     {result && (
                         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden animate-fade-in-up">
                             <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
@@ -91,7 +86,6 @@ export default function Check({ auth, result }) {
                             </div>
 
                             <div className="p-6 space-y-6">
-                                {/* Info Order (Jika ada di DB) */}
                                 {result.order && (
                                     <div className="grid grid-cols-2 gap-4 pb-6 border-b border-gray-100">
                                         <div>
@@ -114,11 +108,9 @@ export default function Check({ auth, result }) {
                                     </div>
                                 )}
 
-                                {/* Info Usage (Dari API) */}
                                 {result.usages && result.usages.length > 0 ? (
                                     result.usages.map((usage, idx) => {
-                                        // Hitung Persentase
-                                        const total = usage.totalData || 1; // avoid div by zero
+                                        const total = usage.totalData || 1; 
                                         const used = usage.dataUsage || 0;
                                         const remaining = total - used;
                                         const percentUsed = Math.min(100, Math.max(0, (used / total) * 100));
@@ -135,7 +127,6 @@ export default function Check({ auth, result }) {
                                                     </div>
                                                 </div>
 
-                                                {/* Usage Bar */}
                                                 <div className="mb-2 flex justify-between text-sm font-medium">
                                                     <span className="text-gray-600">Terpakai: {formatBytes(used)}</span>
                                                     <span className="text-gray-900">Total: {formatBytes(total)}</span>

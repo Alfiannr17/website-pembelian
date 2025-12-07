@@ -6,11 +6,12 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
-
 use App\Models\Game;
 use App\Models\Item;
 use App\Models\Transaction;
 use App\Models\User; 
+use App\Services\VipResellerService;
+
 
 class GameController extends Controller
 {
@@ -76,8 +77,130 @@ class GameController extends Controller
 
     public function destroy(Game $game)
     {
+        // 1. Cek apakah ada item dari game ini yang sudah pernah ditransaksikan
+        $hasTransactions = Transaction::whereIn('item_id', $game->items->pluck('id'))->exists();
+
+        if ($hasTransactions) {
+            // Jika ada transaksi, JANGAN HAPUS. Beri pesan error.
+            return back()->with('error', 'Gagal menghapus! Game ini memiliki riwayat transaksi. Silakan ubah status menjadi Inactive saja.');
+        }
+
+        // 2. Jika aman (belum ada transaksi), baru hapus
         $game->delete();
+        
         return redirect()->route('admin.games.index')
             ->with('success', 'Game berhasil dihapus');
     }
+
+  
+
+// ... di dalam Class GameController ...
+
+    /**
+     * SYNC GAME & ITEM DARI VIP API
+     */
+   /**
+     * SYNC GAME & ITEM DARI VIP API (DENGAN FILTER)
+     */
+    // app/Http/Controllers/Admin/GameController.php
+
+    /**
+     * HALAMAN 1: TAMPILKAN DAFTAR GAME DARI API
+     */
+    /**
+     * TAMPILKAN HALAMAN PILIH GAME (GET)
+     */
+    public function showSyncPage(VipResellerService $vip)
+    {
+        // Ambil data dari API
+        $result = $vip->getServices();
+
+        if (!($result['result'] ?? false)) {
+            return back()->with('error', 'Gagal koneksi ke API VIP.');
+        }
+
+        // Grouping Data per Game Brand
+        $groupedGames = [];
+        
+        foreach ($result['data'] as $service) {
+            $gameName = $service['game'];
+            
+            if (!isset($groupedGames[$gameName])) {
+                $groupedGames[$gameName] = [
+                    'brand' => $gameName,
+                    'category' => $service['category'] ?? 'Game',
+                    'total_items' => 0,
+                ];
+            }
+            $groupedGames[$gameName]['total_items']++;
+        }
+
+        ksort($groupedGames); // Urutkan Abjad
+
+        // Render Halaman Sync.jsx
+        return Inertia::render('Admin/Games/Sync', [
+            'apiGames' => array_values($groupedGames)
+        ]);
+    }
+
+    /**
+     * PROSES SIMPAN GAME TERPILIH (POST)
+     */
+    public function processSync(Request $request, VipResellerService $vip)
+    {
+        $request->validate([
+            'selected_brands' => 'required|array',
+            'profit_margin' => 'numeric|min:0'
+        ]);
+
+        $selectedBrands = $request->selected_brands;
+        $marginPercent = $request->profit_margin ?? 5;
+
+        $result = $vip->getServices();
+        
+        if (!($result['result'] ?? false)) return back();
+
+        $countGame = 0;
+        $countItem = 0;
+
+        foreach ($result['data'] as $service) {
+            // Hanya simpan jika brand dipilih admin
+            if (in_array($service['game'], $selectedBrands)) {
+                
+                // 1. Simpan Game
+                $game = Game::firstOrCreate(
+                    ['api_brand' => $service['game']], 
+                    [
+                        'name' => $service['game'],
+                        'slug' => Str::slug($service['game']),
+                        'provider' => 'vip',
+                        'is_zone_id_required' => str_contains(strtolower($service['game']), 'mobile legends'),
+                        'image' => null,
+                        'is_active' => true
+                    ]
+                );
+                if ($game->wasRecentlyCreated) $countGame++;
+
+                // 2. Simpan Item (Hitung Harga Jual)
+                $modal = $service['price']['special'] ?? 0;
+                $jual = $modal + ($modal * ($marginPercent / 100));
+
+                Item::updateOrCreate(
+                    ['api_code' => $service['code']],
+                    [
+                        'game_id' => $game->id,
+                        'name' => $service['name'],
+                        'price' => ceil($jual),
+                        'is_active' => ($service['status'] === 'available')
+                    ]
+                );
+                $countItem++;
+            }
+        }
+
+        return redirect()->route('admin.games.index')
+            ->with('success', "Sukses! $countGame game baru & $countItem layanan ditambahkan.");
+    }
+
+
 }

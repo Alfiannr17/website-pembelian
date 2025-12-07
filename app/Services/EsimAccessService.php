@@ -23,15 +23,10 @@ class EsimAccessService
         return [
             'Content-Type' => 'application/json',
             'apiKey' => $this->apiKey,
-            'RT-AccessCode' => $this->accessCode,  // PENTING → wajib untuk semua open API
+            'RT-AccessCode' => $this->accessCode, 
         ];
     }
 
-    /**
-     * ============================================================
-     * GET ALL PACKAGES
-     * ============================================================
-     */
     public function getPackages($locationCode = 'ID')
     {
         try {
@@ -71,41 +66,29 @@ class EsimAccessService
         }
     }
 
-    /**
-     * ============================================================
-     * ORDER ESIM PROFILE
-     * ============================================================
-     */
     public function orderEsim($transactionId, $packageCode, $count = 1, $price = null)
 {
-    // API URL dari dokumentasi
     $url = $this->baseUrl . '/esim/order';
 
-    // Siapkan Item Paket
     $packageItem = [
         'packageCode' => $packageCode,
         'count'       => $count
     ];
 
-    // Jika ada harga (opsional tapi disarankan untuk validasi saldo)
-    // Ingat: 10000 = $1.00. Jadi jika price 0.7, dikali 10000 = 7000.
     if ($price !== null) {
-        $priceInApiFormat = (int)($price * 16000);
+        $priceInApiFormat = (int)($price * 10000);
         $packageItem['price'] = $priceInApiFormat;
     }
 
-    // Siapkan Payload Utama
     $payload = [
         'transactionId'   => $transactionId,
         'packageInfoList' => [$packageItem]
     ];
 
-    // Tambahkan total amount jika price ada
     if ($price !== null) {
         $payload['amount'] = $packageItem['price'] * $count;
     }
 
-    // Kirim Request
     try {
         $response = Http::withHeaders($this->headers())->post($url, $payload);
         $data = $response->json();
@@ -116,7 +99,7 @@ class EsimAccessService
         if (($data['success'] ?? false) === true) {
             return [
                 'success' => true,
-                'orderNo' => $data['obj']['orderNo'] // Ambil OrderNo dari API
+                'orderNo' => $data['obj']['orderNo'] 
             ];
         }
 
@@ -130,11 +113,7 @@ class EsimAccessService
     }
 }
 
-    /**
-     * ============================================================
-     * QUERY ORDER (GET ESIM LIST BY ORDER NO)
-     * ============================================================
-     */
+
     public function queryByOrderNo($orderNo, $pageNum = 1, $pageSize = 50)
     {
         try {
@@ -171,11 +150,7 @@ class EsimAccessService
         }
     }
 
-    /**
-     * ============================================================
-     * QUERY BY ICCID
-     * ============================================================
-     */
+ 
     public function queryByIccid($iccid)
     {
         try {
@@ -210,11 +185,7 @@ class EsimAccessService
         }
     }
 
-    /**
-     * ============================================================
-     * CHECK DATA USAGE
-     * ============================================================
-     */
+
     public function checkUsage(array $esimTranNoList)
     {
         try {

@@ -3,15 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\Transaction;
-use App\Models\EsimOrder; // Import Model eSIM
-use App\Services\EsimAccessService; // Import Service eSIM
+use App\Models\EsimOrder; 
+use App\Services\EsimAccessService;
+use App\Services\VipResellerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class MidtransWebhookController extends Controller
 {
-    public function handle(Request $request, EsimAccessService $esimService)
+    public function handle(Request $request, EsimAccessService $esimService, VipResellerService $vipService)
     {
         $serverKey = config('services.midtrans.server_key');
         $hashed = hash("sha512", $request->order_id . $request->status_code . $request->gross_amount . $serverKey);
@@ -21,28 +22,19 @@ class MidtransWebhookController extends Controller
         }
 
         try {
-            // Set Config
             \Midtrans\Config::$serverKey = config('services.midtrans.server_key');
             \Midtrans\Config::$isProduction = config('services.midtrans.is_production');
             $notification = new \Midtrans\Notification();
 
             $orderId = $notification->order_id;
             $transactionStatus = $notification->transaction_status;
-            $fraudStatus = $notification->fraud_status ?? null;
-            $paymentType = $notification->payment_type;
-
+            
             Log::info('Midtrans Webhook Received', ['order_id' => $orderId, 'status' => $transactionStatus]);
 
-            // ========================================================
-            // LOGIC CABANG: CEK APAKAH INI ESIM ATAU GAME?
-            // ========================================================
-            
             if (Str::startsWith($orderId, 'ESIM-')) {
-                // --- HANDLE ESIM ORDER ---
                 return $this->handleEsimOrder($notification, $esimService);
             } else {
-                // --- HANDLE GAME TOP UP (Existing Logic) ---
-                return $this->handleGameTransaction($notification);
+                return $this->handleGameTransaction($notification, $vipService); 
             }
 
         } catch (\Exception $e) {
@@ -56,7 +48,7 @@ class MidtransWebhookController extends Controller
      */
     private function handleEsimOrder($notification, EsimAccessService $esimService)
     {
-       $order = EsimOrder::with('package')->where('invoice_number', $notification->order_id)->first();
+        $order = EsimOrder::with('package')->where('invoice_number', $notification->order_id)->first();
 
         if (!$order) {
             return response()->json(['message' => 'Esim Order not found'], 404);
@@ -66,7 +58,6 @@ class MidtransWebhookController extends Controller
         $type = $notification->payment_type;
         $fraud = $notification->fraud_status ?? null;
 
-        // 1. Tentukan Status Pembayaran
         $finalStatus = null;
         if ($status == 'capture') {
             $finalStatus = ($fraud == 'challenge') ? 'pending' : 'paid';
@@ -79,11 +70,10 @@ class MidtransWebhookController extends Controller
         }
 
         if ($finalStatus) {
-            // 2. Update Status Pembayaran di DB
             $updateData = [
-                'payment_status' => $finalStatus,
+                'payment_status' => $finalStatus, 
                 'payment_method' => $type,
-                'midtrans_response' => (array)$notification->getResponse() // Cast ke array
+                'midtrans_response' => json_decode(json_encode($notification->getResponse()), true)
             ];
 
             if ($finalStatus == 'paid') {
@@ -92,19 +82,14 @@ class MidtransWebhookController extends Controller
 
             $order->update($updateData);
 
-            // 3. LOGIC BELI KE API (JIKA PAID & BELUM BELI)
             if ($finalStatus == 'paid' && empty($order->api_order_no)) {
-                Log::info("eSIM Paid ($order->invoice_number). Buying from API...");
-
-                $apiTxId = $order->invoice_number . '-' . time();
-
-                // PERBAIKAN UTAMA DISINI:
-                // Gunakan $order->package->price (0.7), JANGAN $order->amount (11200)
+                $originalPrice = $order->package->price; 
+                
                 $apiResult = $esimService->orderEsim(
-                    $apiTxId,
+                    $order->invoice_number . '-' . time(),
                     $order->esim_package_code,
                     1,
-                    $order->package->price // <--- INI KUNCINYA (USD)
+                    $originalPrice 
                 );
 
                 if ($apiResult['success']) {
@@ -112,9 +97,9 @@ class MidtransWebhookController extends Controller
                         'api_order_no' => $apiResult['orderNo'],
                         'order_status' => 'processing'
                     ]);
-                    Log::info("eSIM Ordered Successfully via Webhook: " . $apiResult['orderNo']);
+                    Log::info("eSIM Ordered Successfully: " . $apiResult['orderNo']);
                 } else {
-                    Log::error("Failed to buy eSIM API: " . ($apiResult['error'] ?? 'Unknown'));
+                    Log::error("Failed to buy eSIM from API: " . ($apiResult['error'] ?? 'Unknown'));
                 }
             }
         }
@@ -123,11 +108,11 @@ class MidtransWebhookController extends Controller
     }
 
     /**
-     * Logic Khusus Game Top Up (Kode Lama Anda dipindah ke sini)
+     * Logic Khusus Game Top Up 
      */
-    private function handleGameTransaction($notification)
+    private function handleGameTransaction($notification, VipResellerService $vipService)
     {
-        $transaction = Transaction::where('invoice_number', $notification->order_id)->first();
+        $transaction = Transaction::with('item')->where('invoice_number', $notification->order_id)->first();
 
         if (!$transaction) {
             return response()->json(['message' => 'Game Transaction not found'], 404);
@@ -137,31 +122,68 @@ class MidtransWebhookController extends Controller
         $fraudStatus = $notification->fraud_status ?? null;
         $paymentType = $notification->payment_type;
 
-        switch ($transactionStatus) {
-            case 'capture':
-                if ($fraudStatus == 'challenge') {
-                    $this->updateTransaction($transaction, 'pending', $notification, $paymentType);
-                } else if ($fraudStatus == 'accept') {
-                    $this->updateTransaction($transaction, 'paid', $notification, $paymentType);
+        $newStatus = null;
+        if ($transactionStatus == 'capture') {
+            $newStatus = ($fraudStatus == 'challenge') ? 'pending' : 'paid';
+        } elseif ($transactionStatus == 'settlement') {
+            $newStatus = 'paid';
+        } elseif ($transactionStatus == 'pending') {
+            $newStatus = 'pending';
+        } elseif (in_array($transactionStatus, ['deny', 'expire', 'cancel'])) {
+            $newStatus = 'failed';
+        }
+
+        if ($newStatus) {
+            
+            $updateData = [
+                'status' => $newStatus,
+                'payment_method' => $paymentType,
+                'midtrans_order_id' => $notification->transaction_id,
+                'midtrans_response' => json_decode(json_encode($notification->getResponse()), true),
+            ];
+
+            if ($newStatus === 'paid') {
+                $updateData['paid_at'] = now();
+            }
+
+            $transaction->update($updateData);
+            if ($newStatus == 'paid' && empty($transaction->api_trx_id)) {
+                
+                Log::info("Game Paid ({$transaction->invoice_number}). Ordering to VIP...");
+
+                $item = $transaction->item;
+
+                if ($item && $item->api_code) {
+         
+                    $vipResult = $vipService->placeOrder(
+                        $item->api_code,       
+                        $transaction->game_user_id, 
+                        $transaction->game_zone_id 
+                    );
+
+                    if (($vipResult['result'] ?? false) == true) {
+                
+                        $transaction->update([
+                            'status' => 'processing',
+                            'api_trx_id' => $vipResult['data']['trxid'],
+                            'api_note' => $vipResult['message'] ?? 'Proses API Berhasil'
+                        ]);
+                        Log::info("VIP Order Success: " . $vipResult['data']['trxid']);
+                    } else {
+                 
+                        $errorMsg = $vipResult['message'] ?? 'Unknown Error';
+                        Log::error("VIP Order Failed: " . $errorMsg);
+                        $transaction->update(['api_note' => "API Error: $errorMsg"]);
+                    }
+                } else {
+                    Log::warning("Skipping VIP Order: Item/API Code missing.");
                 }
-                break;
-            case 'settlement':
-                $this->updateTransaction($transaction, 'paid', $notification, $paymentType);
-                break;
-            case 'pending':
-                $this->updateTransaction($transaction, 'pending', $notification, $paymentType);
-                break;
-            case 'deny':
-            case 'cancel':
-                $this->updateTransaction($transaction, 'failed', $notification, $paymentType);
-                break;
-            case 'expire':
-                $this->updateTransaction($transaction, 'expired', $notification, $paymentType);
-                break;
+            }
         }
 
         return response()->json(['message' => 'Game Notification processed']);
     }
+
 
     private function updateTransaction($transaction, $status, $notification, $paymentType)
     {
@@ -169,7 +191,7 @@ class MidtransWebhookController extends Controller
             'status' => $status,
             'payment_method' => $paymentType,
             'midtrans_order_id' => $notification->transaction_id,
-            'midtrans_response' => $notification->getResponse(),
+            'midtrans_response' => json_encode($notification->getResponse()), 
         ];
 
         if ($status === 'paid') {

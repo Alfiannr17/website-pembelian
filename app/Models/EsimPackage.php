@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class EsimPackage extends Model
 {
-    // Tambahkan fillable sesuai migrasi agar data bisa disimpan
     protected $fillable = [
         'package_code',
         'slug',
@@ -29,10 +28,6 @@ class EsimPackage extends Model
         'is_active' => 'boolean',
     ];
 
-    /**
-     * Relasi ke EsimOrder.
-     * hasMany(Model, 'foreign_key_di_tabel_anak', 'local_key_di_tabel_ini')
-     */
     public function orders()
     {
         return $this->hasMany(EsimOrder::class, 'esim_package_code', 'package_code');

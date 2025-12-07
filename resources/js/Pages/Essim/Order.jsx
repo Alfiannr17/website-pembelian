@@ -10,7 +10,7 @@ export default function EsimOrder({ auth, packageCode, package: pkg }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post('/esim/order/process');
+        post('/essim/order/process');
     };
 
     const totalPrice = pkg ? (pkg.price * data.quantity) : 0;

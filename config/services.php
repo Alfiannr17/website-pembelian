@@ -48,4 +48,11 @@ return [
         'access_code' => env('ESIM_ACCESS_ACCESS_CODE', 'aa4ddeb826234424b94233d28b522cf1'),
         'base_url' => env('ESIM_ACCESS_BASE_URL', 'https://api.esimaccess.com/api/v1/open'),
     ],
+
+    
+    'vip' => [
+        'api_id' => env('VIP_API_KEY'),
+        'api_key' => env('VIP_API_SIGN'),
+    ],
+
 ];

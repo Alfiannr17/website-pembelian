@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Item extends Model
 {
     protected $fillable = [
-        'game_id', 'name', 'description', 'price', 'stock', 'is_active'
+        'game_id', 'name', 'description', 'price', 'stock', 'is_active', 'api_code'
     ];
 
     protected $casts = [

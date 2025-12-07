@@ -23,14 +23,14 @@ export default function Login({ status, canResetPassword }) {
 
     return (
         <GuestLayout>
-            <Head title="Log in" />
+            <Head title="Log in Admin" />
 
             {status && (
                 <div className="mb-4 text-sm font-medium text-green-600">
                     {status}
                 </div>
             )}
-            <h2 className='font-bold justify-center flex items-center text-3xl mb-6 mt-3'>Login Admin</h2>
+            <h2 className='font-bold justify-center flex items-center text-3xl mb-6 mt-3'>Login</h2>
 
             <form onSubmit={submit}>
                 <div>

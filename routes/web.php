@@ -11,6 +11,8 @@ use App\Http\Middleware\IsAdmin;
 use App\Http\Controllers\EssimController;
 use App\Http\Controllers\MidtransWebhookController;
 
+
+
 Route::post('midtrans/webhook', [MidtransWebhookController::class, 'handle']);
 
 
@@ -26,11 +28,18 @@ require __DIR__.'/auth.php';
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
+    // --- PINDAHKAN ROUTE SYNC KE SINI (PALING ATAS) ---
+    Route::get('/integrations/sync-vip', [GameController::class, 'showSyncPage'])->name('games.sync-page');
+    Route::post('/integrations/sync-vip', [GameController::class, 'processSync'])->name('games.sync-process');
+    
+    // --- BARU ROUTE RESOURCE DI BAWAHNYA ---
     Route::resource('games', GameController::class);
     
     Route::resource('items', ItemController::class);
     Route::patch('items/{item}/toggle-status', [ItemController::class, 'toggleStatus'])->name('items.toggle-status');
 });
+
+Route::post('/order/check-id', [OrderController::class, 'checkGameId'])->name('order.check-id');
 
 // routes/web.php
 Route::get('/test-csrf', function() {
@@ -53,7 +62,7 @@ Route::prefix('essim')->name('essim.')->group(function () {
     // Public routes
     Route::get('/', [EssimController::class, 'index'])->name('index');
     Route::get('/packages/{packageCode}', [EssimController::class, 'showPackage'])->name('showPackage');
-    Route::post('/order', [EssimController::class, 'processOrder'])->name('processOrder');
+    Route::post('/order', [EssimController::class, 'processOrder'])->name('order');
     Route::get('/invoice/{invoice_number}', [EssimController::class, 'invoice'])->name('invoice');
     
     // Check transaction
@@ -68,7 +77,3 @@ Route::prefix('essim')->name('essim.')->group(function () {
         Route::get('/details/{id}', [EssimController::class, 'esimDetails'])->name('details');
     });
 });
-
-
-
-

@@ -1,5 +1,6 @@
 import UserLayout from '@/Layouts/UserLayout';
 import { Head, useForm } from '@inertiajs/react';
+import { Headset } from 'lucide-react';
 
 export default function Check({ auth }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -15,7 +16,7 @@ export default function Check({ auth }) {
         <UserLayout auth={auth}>
             <Head title="Cek Transaksi" />
 
-            <div className="min-h-screen bg-gray-50 flex flex-col px-4  py-12 sm:px-6 lg:px-8">
+            <div className="min-h-screen bg-white flex flex-col px-4  py-12 sm:px-6 lg:px-8">
                 <div className="sm:mx-auto sm:w-full sm:max-w-md">
                     <div className="text-center mb-6">
                         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-pink-100 mb-4">
@@ -31,7 +32,7 @@ export default function Check({ auth }) {
                         </p>
                     </div>
 
-                    <div className="bg-white py-8 px-4 shadow sm:rounded-lg rounded-2xl sm:px-10 border border-gray-300">
+                    <div className="bg-white py-8 px-4 sm:rounded-lg rounded-2xl sm:px-10 border border-gray-100">
                         <form onSubmit={submit} className="space-y-6">
                             <div>
                                 <label htmlFor="invoice" className="block text-sm font-medium text-gray-700">
@@ -41,10 +42,10 @@ export default function Check({ auth }) {
                                     <input
                                         id="invoice"
                                         type="text"
-                                        placeholder="Contoh: INV-XXXXXXXX"
+                                        placeholder="Masukan No. Invoice"
                                         value={data.invoice_number}
                                         onChange={(e) => setData('invoice_number', e.target.value)}
-                                        className={`block w-full pr-10 border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500 sm:text-sm py-3 ${
+                                        className={`block w-full pr-10 border-gray-100 rounded-lg focus:ring-pink-500 focus:border-pink-500 sm:text-sm py-3 ${
                                             errors.invoice_number ? 'border-red-300' : ''
                                         }`}
                                     />
@@ -65,7 +66,7 @@ export default function Check({ auth }) {
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 disabled:opacity-50 transition-colors"
+                                    className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-pink-500 to-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 disabled:opacity-50 transition-colors"
                                 >
                                     {processing ? 'Mencari...' : 'Cek Status Pesanan'}
                                 </button>
@@ -88,11 +89,11 @@ export default function Check({ auth }) {
                                 <a
                                     href="https://wa.me/628123456789" // Ganti nomor WA Anda
                                     target="_blank"
-                                    className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                                    className="w-full flex items-center justify-center px-4 py-2 border border-gray-100 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                                 >
-                                    <svg className="h-5 w-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.897.003-6.111 4.981-11.086 11.094-11.086 2.964.002 5.751 1.156 7.848 3.253 2.096 2.098 3.249 4.885 3.251 7.85 0 6.115-4.978 11.09-11.095 11.09-2.007-.001-3.996-.532-5.776-1.528L0 24.057zm3.876-4.575l.394.233c1.658.985 3.526 1.503 5.435 1.505 5.567.001 10.096-4.529 10.097-10.097-.002-2.697-1.052-5.232-2.956-7.135-1.905-1.905-4.44-2.954-7.138-2.954-5.569 0-10.098 4.53-10.1 10.1-.001 1.93.535 3.824 1.554 5.525l.245.412-1.033 3.771 3.502-1.06zm12.353-7.567c.361.202.766.197 1.058-.088.354-.343.896-1.12 1.144-1.512.247-.393.284-.755.123-.957-.161-.202-.423-.323-.886-.545-.462-.222-2.731-1.353-3.154-1.515-.423-.162-.731-.242-1.038.222-.308.465-1.192 1.515-1.461 1.818-.269.303-.538.343-1.001.121-.461-.222-1.951-.719-3.717-2.293-1.365-1.218-2.287-2.723-2.556-3.188-.269-.465-.029-.716.203-.948.209-.209.462-.545.693-.818.23-.273.308-.465.461-.777.154-.313.077-.586-.038-.818-.115-.232-1.039-2.505-1.423-3.434-.374-.903-.755-.78-1.039-.794-.275-.013-.59-.013-.905-.013-.315 0-.827.118-1.26.591-.433.474-1.654 1.616-1.654 3.939 0 2.324 1.692 4.566 1.923 4.869.231.303 3.328 5.085 8.064 7.131 2.822 1.218 3.921 1.218 5.312 1.157 1.11-.049 2.731-1.121 3.115-2.202.385-1.081.385-2.01.269-2.202z"/>
-                                    </svg>
+                                    
+                                       <Headset className="h-5 w-5 text-green-500 mr-2" />
+                                    
                                     Hubungi Admin
                                 </a>
                             </div>

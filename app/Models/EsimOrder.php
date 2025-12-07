@@ -20,17 +20,14 @@ class EsimOrder extends Model
         'payment_method',
         'payment_status',
         'order_status',
-        'midtrans_response', // Pastikan ini ada
+        'midtrans_response',
         'api_order_no',
         'api_response',
         'paid_at'
     ];
 
-    // ==========================================
-    // TAMBAHKAN BAGIAN INI (CASTING)
-    // ==========================================
     protected $casts = [
-        'midtrans_response' => 'array', // Otomatis convert JSON DB <-> Array PHP
+        'midtrans_response' => 'array',
         'api_response' => 'array',
         'amount' => 'integer',
         'paid_at' => 'datetime',

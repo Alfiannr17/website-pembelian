@@ -11,18 +11,18 @@ class Transaction extends Model
     'user_id',
     'game_id',
     'item_id',
-    'esim_package_code', // TAMBAH
+    'esim_package_code', 
     'game_user_id',
     'email',
     'amount',
     'payment_method',
     'status',
-    'order_status', // TAMBAH
+    'order_status', 
     'midtrans_order_id',
     'midtrans_response',
-    'esim_data', // TAMBAH
-    'esim_iccid', // TAMBAH
-    'esim_transaction_no', // TAMBAH
+    'esim_data',
+    'esim_iccid', 
+    'esim_transaction_no', 
     'paid_at',
     ];
 

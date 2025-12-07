@@ -16,10 +16,9 @@ export default function Show({ auth, package: pkg }) {
         { 
         id: 'qris', name: 'QRIS (All E-Wallet)', src: '/storage/images/qris.jpg'},
         { id: 'bca_va', name: 'BCA Virtual Account', src: '/storage/images/bca.jpg' },
-        { id: 'bni_va', name: 'BNI Virtual Account', src: '/storage/images/bni.jpg' },
+   
         { id: 'bri_va', name: 'BRI Virtual Account', src: '/storage/images/bri.jpg' },
-        { id: 'alfamart', name: 'Alfamart',src: '/storage/images/alfa.jpg' },
-        { id: 'indomaret', name: 'Indomaret',src: '/storage/images/indo.jpg' },
+     
     ];
 
     const formatBytes = (bytes) => {
@@ -31,7 +30,7 @@ export default function Show({ auth, package: pkg }) {
 const handleSubmit = (e) => {
     e.preventDefault();
     
-    post(route('essim.processOrder'), {
+    post(route('essim.order'), {
         preserveScroll: true,
         onSuccess: () => {
         },
@@ -56,7 +55,7 @@ const handleSubmit = (e) => {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
                     <div className="lg:col-span-1">
-                        <div className="bg-white rounded-2xl border border-gray-200 shadow p-6 sticky top-6">
+                        <div className="bg-white rounded-2xl border border-gray-100 p-6 sticky top-6">
                             <div className="text-center mb-6">
                                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-pink-100 mb-4">
                                     <Smartphone className="w-8 h-8 text-pink-500" />
@@ -94,7 +93,6 @@ const handleSubmit = (e) => {
                                 </div>
                             </div>
 
-                            {/* Price */}
                             <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl ">
                                 <p className="text-sm text-gray-600 mb-1">Total Harga</p>
                                 <p className="text-3xl font-bold text-pink-500">
@@ -112,7 +110,7 @@ const handleSubmit = (e) => {
 
                     <div className="lg:col-span-2">
                         <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="bg-white rounded-2xl border border-gray-200 shadow overflow-hidden">
+                            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
                                 <div className="bg-pink-500 text-white px-6 py-4">
                                     <h2 className="text-lg font-bold flex items-center">
                                         <span className="bg-white text-pink-500 rounded-full w-8 h-8 flex items-center justify-center mr-3 font-bold">1</span>
@@ -129,7 +127,7 @@ const handleSubmit = (e) => {
                                             value={data.email}
                                             onChange={e => setData('email', e.target.value)}
                                             placeholder="email@example.com"
-                                            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                                            className="w-full border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                                             required
                                         />
                                         {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email}</p>}
@@ -144,14 +142,14 @@ const handleSubmit = (e) => {
                                             value={data.phone}
                                             onChange={e => setData('phone', e.target.value)}
                                             placeholder="+62 812 3456 7890"
-                                            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                                            className="w-full border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                                         />
                                     </div>
                                 </div>
                             </div>
 
                     
-                            <div className="bg-white rounded-2xl border border-gray-200 shadow overflow-hidden">
+                            <div className="bg-white rounded-2xl border border-gray-100  overflow-hidden">
                                 <div className="bg-pink-500 text-white px-6 py-4">
                                     <h2 className="text-lg font-bold flex items-center">
                                         <span className="bg-white text-pink-500 rounded-full w-8 h-8 flex items-center justify-center mr-3 font-bold">2</span>
@@ -165,14 +163,13 @@ const handleSubmit = (e) => {
                                                 key={method.id}
                                                 type="button"
                                                 onClick={() => setData('payment_method', method.id)}
-                                                className={`w-full border-2 rounded-xl p-4 flex items-center transition ${
+                                                className={`w-full border rounded-xl p-4 flex items-center transition ${
                                                     data.payment_method === method.id
-                                                        ? 'border-pink-500 bg-pink-100'
-                                                        : 'border-gray-200 hover:border-pink-300'
+                                                      ? 'border-pink-500 bg-pink-50 ring-1 ring-pink-500' 
+                                                        : 'border-gray-200 hover:border-pink-500 hover:bg-pink-50'
                                                 }`}
                                             >
-                                                
-                                                {/* LOGIKA LOGO / GAMBAR */}
+                                            
                                                 <div className="w-12 h-8 mr-4 flex items-center justify-center shrink-0">
                                                     {method.src ? (
                                                         <img 
@@ -196,10 +193,7 @@ const handleSubmit = (e) => {
                                     )}
                                 </div>
                             </div>
-
-                            {/* Submit */}
-                  
-                            <div className="bg-white rounded-2xl border border-gray-200 shadow p-6">
+                            <div className="bg-white rounded-2xl border border-gray-100 p-6">
                                 <div className="flex justify-between items-center mb-4">
                                         <span className="text-gray-600">Total Pembayaran:</span>
                                         <span className="text-2xl font-bold text-pink-600">

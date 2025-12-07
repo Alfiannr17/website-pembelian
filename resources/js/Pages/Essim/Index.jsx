@@ -10,8 +10,6 @@ export default function Index({ auth, packages }) {
             <Head title="eSIM Indonesia" />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-                {/* Header */}
                 <div className="text-center mb-12">
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-pink-500 mb-4">
                         <Wifi className="w-8 h-8 text-white" />
@@ -24,9 +22,8 @@ export default function Index({ auth, packages }) {
                     </p>
                 </div>
 
-                {/* Features */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-                    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 text-center">
+                    <div className="bg-white rounded-xl p-6 border border-gray-100 text-center">
                         <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 mb-4">
                             <Zap className="w-6 h-6 text-blue-600" />
                         </div>
@@ -36,7 +33,7 @@ export default function Index({ auth, packages }) {
                         </p>
                     </div>
 
-                    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 text-center">
+                    <div className="bg-white rounded-xl p-6 border border-gray-100 text-center">
                         <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-100 mb-4">
                             <Clock className="w-6 h-6 text-green-600" />
                         </div>
@@ -46,7 +43,7 @@ export default function Index({ auth, packages }) {
                         </p>
                     </div>
 
-                    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 text-center">
+                    <div className="bg-white rounded-xl p-6 border border-gray-100 text-center">
                         <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-purple-100 mb-4">
                             <Wifi className="w-6 h-6 text-pink-600" />
                         </div>
@@ -57,27 +54,10 @@ export default function Index({ auth, packages }) {
                     </div>
                 </div>
 
-                {/* Check Transaction */}
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 mb-12 border border-blue-200">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h3 className="font-bold text-gray-900 mb-1">Sudah Punya eSIM?</h3>
-                            <p className="text-sm text-gray-600">Cek status dan detail eSIM Anda</p>
-                        </div>
-                        <Link
-                            href="/essim/check"
-                            className="bg-pink-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-pink-700 transition"
-                        >
-                            Cek eSIM
-                        </Link>
-                    </div>
-                </div>
+                
 
-                {/* Packages */}
                 <div>
                     <h2 className="text-2xl font-bold text-gray-900 mb-6">Pilih Paket eSIM</h2>
-
-                    {/* Pagination Logic */}
                     {(() => {
                         const itemsPerPage = 3;
                         const totalPages = Math.ceil(packages.length / itemsPerPage);
@@ -95,22 +75,21 @@ export default function Index({ auth, packages }) {
                         return (
                             <>
                                 {packages.length === 0 ? (
-                                    <div className="bg-white rounded-xl p-12 text-center border border-gray-200">
+                                    <div className="bg-white rounded-xl p-12 text-center border border-gray-100">
                                         <p className="text-gray-500">Belum ada paket tersedia</p>
                                     </div>
                                 ) : (
                                     <>
-                                        {/* Grid 3 items */}
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                             {currentItems.map((pkg) => (
                                                 <Link
                                                     key={pkg.packageCode}
                                                     href={`/essim/packages/${pkg.packageCode}`}
-                                                    className="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-200 
-                                                               hover:border-pink-500 hover:bg-pink-100 hover:shadow-lg transition-all duration-300 group
+                                                    className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 
+                                                               hover:border-pink-500 hover:bg-pink-50 hover:shadow transition-all duration-300 group
                                                                flex flex-col h-full"
                                                 >
-                                                    {/* Best Seller */}
+                         
                                                     {pkg.duration <= 7 && (
                                                         <div className="w-fit bg-pink-100 text-pink-500 text-xs font-bold px-3 py-1 rounded-full mb-4">
     BEST SELLER
@@ -118,7 +97,6 @@ export default function Index({ auth, packages }) {
 
                                                     )}
 
-                                                    {/* Title + subtitle */}
                                                     <div className="mb-4">
                                                         <span className="text-3xl font-bold text-gray-900">
                                                             {pkg.name}
@@ -128,7 +106,6 @@ export default function Index({ auth, packages }) {
                                                         </p>
                                                     </div>
 
-                                                    {/* PRICE SECTION (dibuat mt-auto agar selalu bawah) */}
                                                     <div className="pt-4 border-t border-gray-100 mt-auto">
                                                         <div className="flex items-center justify-between">
                                                             <div>
@@ -148,10 +125,8 @@ export default function Index({ auth, packages }) {
                                             ))}
                                         </div>
 
-                                        {/* Pagination */}
                                         <div className="flex justify-center items-center gap-2 mt-6">
 
-                                            {/* Prev */}
                                             <button
                                                 disabled={page === 1}
                                                 onClick={() => setPage(page - 1)}
@@ -164,7 +139,6 @@ export default function Index({ auth, packages }) {
                                                 Prev
                                             </button>
 
-                                            {/* Page numbers grouped */}
                                             {Array.from(
                                                 { length: endPage - startPage + 1 },
                                                 (_, i) => startPage + i
@@ -182,7 +156,6 @@ export default function Index({ auth, packages }) {
                                                 </button>
                                             ))}
 
-                                            {/* Next */}
                                             <button
                                                 disabled={page === totalPages}
                                                 onClick={() => setPage(page + 1)}
@@ -202,8 +175,7 @@ export default function Index({ auth, packages }) {
                     })()}
                 </div>
 
-                {/* How it works */}
-                <div className="mt-16 bg-white rounded-2xl p-8 border border-gray-200">
+                <div className="mt-16 bg-white rounded-2xl p-8 border border-gray-100">
                     <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">
                         Cara Menggunakan eSIM
                     </h2>
