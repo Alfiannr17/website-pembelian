@@ -1,5 +1,5 @@
 # PROJECT LARAVEL-INERTIA-REACT  
-Website Top Up dengan Integrasi Midtrans
+Website Top Up dengan Integrasi API VIP RESELLER DAN ESIM ACCES dan Integrasi Payment Method Midtrans
 
 Proyek ini adalah aplikasi **Website Top Up Game** yang dibangun menggunakan **Laravel**, **Inertia.js**, dan **React.js**.  
 Pengguna dapat memilih layanan, memilih item, melakukan pembayaran melalui Midtrans, dan melihat halaman invoice.
