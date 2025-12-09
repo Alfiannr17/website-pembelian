@@ -33,33 +33,38 @@ class OrderController extends Controller
      */
     public function checkGameId(Request $request, VipResellerService $vip)
     {
-        $request->validate([
-            'game_id' => 'required',
-            'user_id' => 'required',
+        $validated = $request->validate([
+            'game_id' => 'required|exists:games,id',
+            'user_id' => 'required|string',
+            'zone_id' => 'nullable|string',
         ]);
 
-        $game = Game::find($request->game_id);
-        
-        $gameCode = $game->category;
-        
-        if (empty($gameCode)) {
-            return response()->json(['status' => 'error', 'message' => 'Konfigurasi Game belum lengkap (Kode API kosong).']);
+        $game = Game::find($validated['game_id']);
+
+        if (!$game || empty($game->category)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Konfigurasi Game belum lengkap (Kode API kosong).'
+            ]);
         }
-       
+
         $res = $vip->checkNickname(
-            $gameCode,      
-            $request->user_id,
-            $request->zone_id ?? null
+            $game->category,
+            $validated['user_id'],
+            $validated['zone_id'] ?? null
         );
 
-        if (($res['result'] ?? false) == true) {
+        if (($res['result'] ?? false) === true) {
             return response()->json([
                 'status' => 'success',
                 'nickname' => $res['data']
             ]);
         }
 
-        return response()->json(['status' => 'error', 'message' => $res['message'] ?? 'ID Tidak Ditemukan']);
+        return response()->json([
+            'status' => 'error',
+            'message' => $res['message'] ?? 'ID Tidak Ditemukan'
+        ]);
     }
 
     /**
@@ -67,32 +72,41 @@ class OrderController extends Controller
      */
     public function process(Request $request)
     {
-        $request->validate([
-            'game_id' => 'required',
-            'item_id' => 'required',
-            'game_user_id' => 'required',
-            'payment_method' => 'required',
+        $validated = $request->validate([
+            'game_id' => 'required|exists:games,id',
+            'item_id' => 'required|exists:items,id',
+            'game_user_id' => 'required|string',
+            'game_zone_id' => 'nullable|string',
+            'payment_method' => 'required|in:qris,bca_va,bni_va,bri_va,permata_va,alfamart,indomaret,gopay',
             'email' => 'required|email',
         ]);
 
-        $item = Item::findOrFail($request->item_id);
+        $item = Item::where('id', $validated['item_id'])
+            ->where('game_id', $validated['game_id'])
+            ->firstOrFail();
 
         $transaction = Transaction::create([
             'invoice_number' => 'TRX-' . strtoupper(Str::random(10)),
             'user_id' => auth()->id(),
-            'game_id' => $request->game_id,
-            'item_id' => $request->item_id,
-            
-            'game_user_id' => $request->game_user_id,
-            'game_zone_id' => $request->game_zone_id ?? null,
-            
+            'game_id' => $validated['game_id'],
+            'item_id' => $validated['item_id'],
+
+            'game_user_id' => $validated['game_user_id'],
+            'game_zone_id' => $validated['game_zone_id'] ?? null,
+
             'amount' => $item->price,
-            'payment_method' => $request->payment_method,
+            'payment_method' => $validated['payment_method'],
             'status' => 'pending',
-            'email' => $request->email
+            'email' => $validated['email']
         ]);
 
-        $this->processMidtransCoreApi($transaction);
+        $midtransOk = $this->processMidtransCoreApi($transaction);
+
+        if (!$midtransOk) {
+            return back()->withErrors([
+                'payment_method' => 'Gagal memproses pembayaran, silakan coba lagi.'
+            ])->withInput();
+        }
 
         return redirect()->route('invoice.show', $transaction->invoice_number);
     }
@@ -116,12 +130,19 @@ class OrderController extends Controller
     }
 
 
-    private function processMidtransCoreApi($transaction)
+    private function processMidtransCoreApi(Transaction $transaction): bool
     {
         Config::$serverKey = config('services.midtrans.server_key');
         Config::$isProduction = config('services.midtrans.is_production');
         Config::$isSanitized = true;
         Config::$is3ds = true;
+
+        if (empty(Config::$serverKey)) {
+            Log::error('Midtrans Error: Server Key is missing');
+            $transaction->update(['status' => 'failed']);
+
+            return false;
+        }
 
         Log::info("Processing Midtrans: " . $transaction->invoice_number);
         Log::info("Environment: " . (Config::$isProduction ? 'PRODUCTION' : 'SANDBOX'));
@@ -148,17 +169,21 @@ class OrderController extends Controller
 
         try {
             $response = CoreApi::charge($params);
-            
+
             $transaction->update([
                 'midtrans_response' => (array) $response,
-                'midtrans_order_id' => $transaction->invoice_number
+                'midtrans_order_id' => $transaction->invoice_number,
             ]);
-            
+
             Log::info("Midtrans Success for {$transaction->invoice_number}");
 
+            return true;
         } catch (\Exception $e) {
             Log::error("Midtrans Failed for {$transaction->invoice_number}: " . $e->getMessage());
-     
+
+            $transaction->update(['status' => 'failed']);
+
+            return false;
         }
     }
 
@@ -185,37 +210,37 @@ class OrderController extends Controller
     }
 
     public function checkTransaction()
-{
-    return Inertia::render('Transaction/Check');
-}
-
-public function processCheckTransaction(Request $request)
-{
-    $request->validate([
-        'invoice_number' => 'required|string',
-    ]);
-
-    $invoice = $request->invoice_number;
-
-    // 🔎 1. Cek di transaksi topup game
-    $game = Transaction::where('invoice_number', $invoice)->first();
-
-    if ($game) {
-        return redirect()->route('invoice.show', $invoice);
+    {
+        return Inertia::render('Transaction/Check');
     }
 
-    // 🔎 2. Cek di pesanan eSIM
-    $esim = EsimOrder::where('invoice_number', $invoice)->first();
+    public function processCheckTransaction(Request $request)
+    {
+        $request->validate([
+            'invoice_number' => 'required|string',
+        ]);
 
-    if ($esim) {
-        return redirect()->route('essim.invoice', $invoice);
+        $invoice = $request->invoice_number;
+
+        // 🔎 1. Cek di transaksi topup game
+        $game = Transaction::where('invoice_number', $invoice)->first();
+
+        if ($game) {
+            return redirect()->route('invoice.show', $invoice);
+        }
+
+        // 🔎 2. Cek di pesanan eSIM
+        $esim = EsimOrder::where('invoice_number', $invoice)->first();
+
+        if ($esim) {
+            return redirect()->route('essim.invoice', $invoice);
+        }
+
+        // ❌ Tidak ada di dua tabel
+        return back()->withErrors([
+            'invoice_number' => 'Nomor Transaksi tidak ditemukan!',
+        ]);
     }
-
-    // ❌ Tidak ada di dua tabel
-    return back()->withErrors([
-        'invoice_number' => 'Nomor Transaksi tidak ditemukan!',
-    ]);
-}
 
 
 
