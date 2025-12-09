@@ -77,15 +77,12 @@ class GameController extends Controller
 
     public function destroy(Game $game)
     {
-        // 1. Cek apakah ada item dari game ini yang sudah pernah ditransaksikan
         $hasTransactions = Transaction::whereIn('item_id', $game->items->pluck('id'))->exists();
 
         if ($hasTransactions) {
-            // Jika ada transaksi, JANGAN HAPUS. Beri pesan error.
             return back()->with('error', 'Gagal menghapus! Game ini memiliki riwayat transaksi. Silakan ubah status menjadi Inactive saja.');
         }
 
-        // 2. Jika aman (belum ada transaksi), baru hapus
         $game->delete();
         
         return redirect()->route('admin.games.index')
@@ -94,32 +91,15 @@ class GameController extends Controller
 
   
 
-// ... di dalam Class GameController ...
 
-    /**
-     * SYNC GAME & ITEM DARI VIP API
-     */
-   /**
-     * SYNC GAME & ITEM DARI VIP API (DENGAN FILTER)
-     */
-    // app/Http/Controllers/Admin/GameController.php
-
-    /**
-     * HALAMAN 1: TAMPILKAN DAFTAR GAME DARI API
-     */
-    /**
-     * TAMPILKAN HALAMAN PILIH GAME (GET)
      */
     public function showSyncPage(VipResellerService $vip)
     {
-        // Ambil data dari API
         $result = $vip->getServices();
 
         if (!($result['result'] ?? false)) {
             return back()->with('error', 'Gagal koneksi ke API VIP.');
         }
-
-        // Grouping Data per Game Brand
         $groupedGames = [];
         
         foreach ($result['data'] as $service) {
@@ -135,9 +115,8 @@ class GameController extends Controller
             $groupedGames[$gameName]['total_items']++;
         }
 
-        ksort($groupedGames); // Urutkan Abjad
+        ksort($groupedGames); 
 
-        // Render Halaman Sync.jsx
         return Inertia::render('Admin/Games/Sync', [
             'apiGames' => array_values($groupedGames)
         ]);
@@ -164,7 +143,6 @@ class GameController extends Controller
         $countItem = 0;
 
         foreach ($result['data'] as $service) {
-            // Hanya simpan jika brand dipilih admin
             if (in_array($service['game'], $selectedBrands)) {
                 
                 // 1. Simpan Game
@@ -181,7 +159,6 @@ class GameController extends Controller
                 );
                 if ($game->wasRecentlyCreated) $countGame++;
 
-                // 2. Simpan Item (Hitung Harga Jual)
                 $modal = $service['price']['special'] ?? 0;
                 $jual = $modal + ($modal * ($marginPercent / 100));
 

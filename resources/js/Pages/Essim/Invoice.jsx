@@ -242,7 +242,6 @@ export default function Invoice({ auth, order, paymentInfo }) {
                                         <span className="text-gray-900 font-sm">{order.email}</span>
                                     </div>
                                 </div>
-                                
                                
                             {currentStep() === 3 && order.profiles?.length > 0 && (
                             <div className="mt-8 space-y-6 animate-fade-in-up">
@@ -266,18 +265,14 @@ export default function Invoice({ auth, order, paymentInfo }) {
                                             </div>
                                         
                                             <div className="flex gap-2">
-    
-   
-    <a
-        href={profile.qr_code_url.replace('.png', '')}
-        target="_blank"
-        className="text-xs bg-white text-pink-500 px-3 py-1.5 rounded-md font-bold hover:bg-pink-100"
-    >
-        Cek Data
-    </a>
-</div>
-
-
+                                                <a
+                                                    href={profile.qr_code_url.replace('.png', '')}
+                                                    target="_blank"
+                                                    className="text-xs bg-white text-pink-500 px-3 py-1.5 rounded-md font-bold hover:bg-pink-100"
+                                                >
+                                                    Cek Data
+                                                </a>
+                                            </div>
 
                                         </div>
 

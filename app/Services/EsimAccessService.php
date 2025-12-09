@@ -37,8 +37,6 @@ class EsimAccessService
 
             $data = $response->json();
 
-            Log::info("PACKAGE LIST RESPONSE", $data);
-
             if (!$response->successful()) {
                 return [
                     'success' => false,
@@ -58,7 +56,6 @@ class EsimAccessService
                 'error' => $data['errorMsg'] ?? 'Unknown error'
             ];
         } catch (\Exception $e) {
-            Log::error("PACKAGE LIST ERROR: " . $e->getMessage());
             return [
                 'success' => false,
                 'error' => $e->getMessage()
@@ -93,9 +90,6 @@ class EsimAccessService
         $response = Http::withHeaders($this->headers())->post($url, $payload);
         $data = $response->json();
 
-        Log::info("API ORDER ESIM REQUEST", ['payload' => $payload]);
-        Log::info("API ORDER ESIM RESPONSE", $data);
-
         if (($data['success'] ?? false) === true) {
             return [
                 'success' => true,
@@ -127,7 +121,7 @@ class EsimAccessService
                 ]);
 
             $data = $response->json();
-            Log::info("QUERY ORDER RESPONSE", $data);
+            
 
             if ($data['success'] ?? false) {
                 return [
@@ -142,7 +136,7 @@ class EsimAccessService
                 'error' => $data['errorMsg'] ?? 'Query failed'
             ];
         } catch (\Exception $e) {
-            Log::error("QUERY ORDER ERROR: " . $e->getMessage());
+           
             return [
                 'success' => false,
                 'error' => $e->getMessage()
@@ -177,7 +171,7 @@ class EsimAccessService
                 'error' => $data['errorMsg'] ?? 'Profile not found'
             ];
         } catch (\Exception $e) {
-            Log::error("QUERY ICCID ERROR: " . $e->getMessage());
+            
             return [
                 'success' => false,
                 'error' => $e->getMessage()
@@ -196,8 +190,6 @@ class EsimAccessService
 
             $data = $response->json();
 
-            Log::info("USAGE RESPONSE", $data);
-
             if ($data['success'] ?? false) {
                 return [
                     'success' => true,
@@ -210,7 +202,7 @@ class EsimAccessService
                 'error' => $data['errorMsg'] ?? 'Failed to check usage'
             ];
         } catch (\Exception $e) {
-            Log::error("USAGE ERROR: " . $e->getMessage());
+            
             return [
                 'success' => false,
                 'error' => $e->getMessage()

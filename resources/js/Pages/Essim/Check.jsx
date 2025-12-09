@@ -24,7 +24,7 @@ export default function Check({ auth, result }) {
         <UserLayout auth={auth}>
             <Head title="Cek Status & Usage eSIM" />
 
-            <div className="min-h-screen bg-gray-50 flex flex-col items-center py-12 px-4">
+            <div className="min-h-screen bg-white flex flex-col items-center py-12 px-4">
                 <div className="max-w-2xl w-full">
 
                     <div className="text-center mb-8">

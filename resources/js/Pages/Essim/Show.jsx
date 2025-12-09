@@ -147,8 +147,6 @@ const handleSubmit = (e) => {
                                     </div>
                                 </div>
                             </div>
-
-                    
                             <div className="bg-white rounded-2xl border border-gray-100  overflow-hidden">
                                 <div className="bg-pink-500 text-white px-6 py-4">
                                     <h2 className="text-lg font-bold flex items-center">
@@ -169,7 +167,6 @@ const handleSubmit = (e) => {
                                                         : 'border-gray-200 hover:border-pink-500 hover:bg-pink-50'
                                                 }`}
                                             >
-                                            
                                                 <div className="w-12 h-8 mr-4 flex items-center justify-center shrink-0">
                                                     {method.src ? (
                                                         <img 
@@ -181,7 +178,6 @@ const handleSubmit = (e) => {
                                                         <span className="text-2xl">{method.logo}</span>
                                                     )}
                                                 </div>
-
                                                 <span className={`font-medium text-left ${data.payment_method === method.id ? 'text-pink-700' : 'text-gray-900'}`}>
                                                     {method.name}
                                                 </span>
@@ -201,7 +197,6 @@ const handleSubmit = (e) => {
                                         </span>
                                     </div>
                                 <button
-                                
                                     type="submit"
                                     disabled={processing || !data.payment_method}
                                     className="w-full bg-pink-500 text-white py-4 rounded-lg font-bold hover:bg-pink-700 disabled:opacity-50 disabled:cursor-not-allowed"

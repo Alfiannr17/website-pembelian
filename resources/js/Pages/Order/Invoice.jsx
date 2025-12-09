@@ -127,12 +127,10 @@ export default function Invoice({ auth, transaction, paymentInfo }) {
                                         <h2 className="text-xl font-bold uppercase text-gray-700">{getBankName()}</h2>
                                     )}
                                 </div>
-
                                 <p className="text-gray-500 text-sm font-medium mb-2">Total Pembayaran</p>
                                 <h3 className="text-4xl font-extrabold text-gray-900 mb-8">
                                     Rp {parseInt(transaction.amount).toLocaleString('id-ID')}
                                 </h3>
-
                                 {transaction.status === 'pending' ? (
                                     <>
                                         {getQrImage() ? (
@@ -172,7 +170,6 @@ export default function Invoice({ auth, transaction, paymentInfo }) {
                                         <span>Pembayaran Gagal</span>
                                     </div>
                                 )}
-
                                 <div className="mt-8 text-left border-t border-gray-100 pt-6">
                                     <div className="flex items-center gap-2 mb-4 text-gray-700 font-semibold">
                                         <span className="text-sm">Butuh Bantuan?</span>
@@ -206,9 +203,6 @@ export default function Invoice({ auth, transaction, paymentInfo }) {
                                 <h2 className="text-xl font-bold text-gray-900 mb-8">Rincian Pesanan</h2>
 
                                 <div className="flex justify-around items-center mb-10 px-4 relative">
-                                    
-                                    
-
                                     {['Menunggu', 'Diterima'].map((step, index) => {
                                         const isActive = currentStep() >= index + 1;
                                         return (
@@ -280,7 +274,6 @@ export default function Invoice({ auth, transaction, paymentInfo }) {
                                     </div>
                                 </div>
 
-                                {/* State Loading Processing */}
                                 {transaction.status === 'processing' && (
                                     <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-center justify-center gap-3 animate-pulse">
                                         <RefreshCw className="w-5 h-5 text-blue-600 animate-spin" />

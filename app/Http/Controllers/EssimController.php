@@ -88,7 +88,7 @@ public function processOrder(Request $request)
         $localPackage = EsimPackage::where('package_code', $validated['package_code'])->first();
         
         if (!$localPackage) {
-            \Log::info("Paket {$validated['package_code']} tidak ada di DB. Mencari ke API...");
+            Log::info("Paket {$validated['package_code']} tidak ada di DB. Mencari ke API...");
 
             $apiResult = $this->esimService->getPackages('ID'); 
 
@@ -111,7 +111,7 @@ public function processOrder(Request $request)
                         'metadata'      => $apiPackage
                     ]);
                     
-                    \Log::info("Sukses Auto-Save Paket ke Database: " . $localPackage->id);
+                    Log::info("Sukses Auto-Save Paket ke Database: " . $localPackage->id);
                 }
             }
         }
@@ -314,7 +314,7 @@ public function processOrder(Request $request)
         Config::$is3ds = true;
 
         if (empty(Config::$serverKey)) {
-            \Log::error('Midtrans Error: Server Key is missing');
+            Log::error('Midtrans Error: Server Key is missing');
             return;
         }
 
@@ -349,7 +349,7 @@ public function processOrder(Request $request)
         ]);
             
         } catch (\Exception $e) {
-            \Log::error('Midtrans Charge Error: ' . $e->getMessage());
+            Log::error('Midtrans Charge Error: ' . $e->getMessage());
         }
     }
 
@@ -395,7 +395,7 @@ public function processOrder(Request $request)
             );
 
             if (!$result['success']) {
-                \Log::error('Failed to create eSIM order', ['error' => $result['error']]);
+                Log::error('Failed to create eSIM order', ['error' => $result['error']]);
                 return false;
             }
 
@@ -408,7 +408,7 @@ public function processOrder(Request $request)
         $result = $this->esimService->queryByOrderNo($order->api_order_no);
 
         if (!$result['success']) {
-            \Log::error('Failed to fetch eSIM profiles', ['error' => $result['error']]);
+            Log::error('Failed to fetch eSIM profiles', ['error' => $result['error']]);
             return false;
         }
 

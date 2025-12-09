@@ -54,8 +54,6 @@ export default function Index({ auth, packages }) {
                     </div>
                 </div>
 
-                
-
                 <div>
                     <h2 className="text-2xl font-bold text-gray-900 mb-6">Pilih Paket eSIM</h2>
                     {(() => {
@@ -88,13 +86,11 @@ export default function Index({ auth, packages }) {
                                                     className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 
                                                                hover:border-pink-500 hover:bg-pink-50 hover:shadow transition-all duration-300 group
                                                                flex flex-col h-full"
-                                                >
-                         
+                                                >     
                                                     {pkg.duration <= 7 && (
                                                         <div className="w-fit bg-pink-100 text-pink-500 text-xs font-bold px-3 py-1 rounded-full mb-4">
-    BEST SELLER
-</div>
-
+                                                            BEST SELLER
+                                                        </div>
                                                     )}
 
                                                     <div className="mb-4">

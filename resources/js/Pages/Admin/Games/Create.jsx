@@ -47,13 +47,12 @@ export default function Create({ auth }) {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-2">buat cek id</label>
-                        <input
-                        type='text'
+                        <label className="block text-sm font-medium mb-2">Game Publisher</label>
+                        <textarea
                             value={data.description}
                             onChange={e => setData('description', e.target.value)}
                             className="w-full border rounded px-3 py-2"
-                            
+                            rows="4"
                         />
                         {errors.description && <p className="text-red-600 text-sm mt-1">{errors.description}</p>}
                     </div>
